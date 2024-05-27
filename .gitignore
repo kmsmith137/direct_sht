@@ -1,0 +1,5 @@
+*~
+*.o
+bin/
+lib/libdirect_sht.a
+lib/libdirect_sht.so
