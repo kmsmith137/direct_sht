@@ -57,7 +57,7 @@ static inline void check_array(const Array<T> &arr)
 
 
 template<typename T>
-Array<T> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const Array<T> &wt_arr, int lmax, int mmax)
+Array<complex<T>> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const Array<T> &wt_arr, int lmax, int mmax)
 {
     const T sqrt_one_over_4pi = cpu_dtype<T>::xsqrt(1.0 / (4*M_PI));
     
@@ -71,10 +71,10 @@ Array<T> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const
     assert(wt_arr.size == theta_arr.size);
 
     int nin = theta_arr.size;
-    int nalm = alm_nelts(lmax, mmax);
+    int nalm = alm_complex_nelts(lmax, mmax);
     
-    Array<T> out({nalm}, af_uhost | af_zero);
-    T *out_p = out.data;
+    Array<complex<T>> out({nalm}, af_uhost | af_zero);
+    complex<T> *out_p = out.data;
 
     const T *theta_p = theta_arr.data;
     const T *phi_p = phi_arr.data;
@@ -94,10 +94,11 @@ Array<T> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const
 	assert(sin_theta > 0.0);
 	
 	for (int m = 0; m <= mmax; m++) {
-	    T *out_mslice = out_p + alm_offset(lmax,m);
+	    complex<T> *out_mslice = out_p + alm_complex_offset(lmax,m);
 	    
 	    T sin_mphi, cos_mphi;
 	    cpu_dtype<T>::xsincos(m*phi, &sin_mphi, &cos_mphi);
+	    complex<T> eimphi = { cos_mphi, -sin_mphi };  // Note minus sign here, since map2alm SHT is defined with Ylm^*
 
 	    // In our reference implementation, we represent (W*Y_{lm}, W*Y_{l-1,m}) by
 	    // a triple (alpha, beta, gamma) such that:
@@ -115,9 +116,7 @@ Array<T> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const
 	    
 	    for (int l = m; l <= lmax; l++) {
 		T wy = wt * alpha * cpu_dtype<T>::xexp2(gamma);
-		
-		out_mslice[2*(l-m)] += wy * cos_mphi;
-		out_mslice[2*(l-m)+1] -= wy * sin_mphi;  // Note minus sign here, since map2alm SHT is defined with Ylm^*
+		out_mslice[l-m] += wy * eimphi;
 
 		T el_next = epsilon<T> (l+1, m);
 		T alpha_next = (cos_theta*alpha - el*beta) / el_next;
@@ -142,7 +141,7 @@ Array<T> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const
 
 
 #define INSTANTIATE(T) \
-    template Array<T> reference_sht(const Array<T> &, const Array<T> &, const Array<T> &, int, int)
+    template Array<complex<T>> reference_sht(const Array<T> &, const Array<T> &, const Array<T> &, int, int)
 
 INSTANTIATE(float);
 INSTANTIATE(double);

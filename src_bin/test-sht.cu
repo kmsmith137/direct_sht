@@ -110,14 +110,14 @@ struct TestInstance
 		 << endl;
 	}
 	
-	int nalm = alm_nelts(lmax, mmax);
-	Array<T> alm_gpu({nalm}, af_gpu | af_random);
+	int nalm = alm_complex_nelts(lmax, mmax);
+	Array<complex<T>> alm_gpu({nalm}, af_gpu | af_random);
 	
 	launch_direct_sht(alm_gpu, theta_big.to_gpu(), phi_big.to_gpu(), wt_big.to_gpu(), lmax, mmax);
 	alm_gpu = alm_gpu.to_host();
 
 	// cout << "epsabs=" << epsabs() << endl;
-	Array<T> alm_cpu = reference_sht(varr(theta_small), varr(phi_small), varr(wt_small), lmax, mmax);
+	Array<complex<T>> alm_cpu = reference_sht(varr(theta_small), varr(phi_small), varr(wt_small), lmax, mmax);
 	assert_arrays_equal(alm_gpu, alm_cpu, "gpu", "cpu", {"ix"}, epsabs(), 0);	  // (epsabs, epsrel)
     }
 };
@@ -127,15 +127,14 @@ void show_ix(int lmax, int mmax, int i)
 {
     // FIXME brain-dead
     for (int m = 0; m <= mmax; m++) {
-	int a = i - alm_offset(lmax, m);
+	int a = i - alm_complex_offset(lmax, m);
 	
-	if ((a < 0) || (a >= 2*(lmax-m+1)))
+	if ((a < 0) || (a >= (lmax-m+1)))
 	    continue;
 	
 	cout << "i=" << i
 	     << ": m=" << m
-	     << ", l=" << (m + a/2)
-	     << ((a % 2) ? ", Im" : ", Re")
+	     << ", l=" << (m + a)
 	     << endl;
 	
 	return;

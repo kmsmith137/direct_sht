@@ -16,11 +16,12 @@ namespace direct_sht {
 //
 //  - All pointers should point to GPU memory (not host memory).
 //
-//  - out_alm should be a pointer to the output array, in the following ordering:
+//  - out_alm should be a pointer to the output array, in healpy ordering:
 //
-//      Re(m=0,l=0) Im(m=0,l=0) ... Re(m=0,l=lmax) Im(m=0,l=lmax)
-//      Re(m=1,l=1) Im(m=1,l=1) ... Re(m=1,l=lmax) Im(m=1,l=lmax)
-//      Re(m=mmax,l=mmax) Im(m=mmax,l=mmax) ... Re(m=mmax,l=lmax) Im(m=mmax,l=lmax)
+//      a_{00} a_{10} ... a_{lmax,0}
+//      a_{11} a_{21} ... a_{lmax,1}
+//               ...
+//      a_{mmax,mmax} ... a_{lmax,mmax}
 //
 //  - in_theta, in_phi, in_wt should be 1-d arrays of length 'nin'.
 //
@@ -34,7 +35,7 @@ namespace direct_sht {
 
 template<typename T>
 extern void launch_direct_sht(
-    T *out_alm,
+    std::complex<T> *out_alm,
     const T *in_theta,
     const T *in_phi,
     const T *in_wt,
@@ -51,7 +52,7 @@ extern void launch_direct_sht(
 
 template<typename T>
 extern void launch_direct_sht(
-    gputils::Array<T> &out_alm,
+    gputils::Array<std::complex<T>> &out_alm,
     const gputils::Array<T> &in_theta,
     const gputils::Array<T> &in_phi,
     const gputils::Array<T> &in_wt,
@@ -65,21 +66,29 @@ extern void launch_direct_sht(
 // alm_offset(), alm_nelts()
 
 
-// Returns pointer offset at l=m, in "units" sizeof(T), not sizeof(complex<T>)
+// Returns pointer offset at l=0 and specified m, in "units" sizeof(T).
 __host__ __device__ inline
-int alm_offset(int lmax, int m)
+int alm_real_offset(int lmax, int m)
 {
     int n = (lmax+1) * m;
     return (n << 1) - m*(m-1);
 }
 
-
-// Returns size of alm array, in "units" sizeof(T), not sizeof(complex<T>)
+// Returns pointer offset at l=0 and specified m, in "units" sizeof(complex<T>).
 __host__ inline
-int alm_nelts(int lmax, int mmax)
+int alm_complex_offset(int lmax, int m)
+{
+    int n = (lmax+1) * m;
+    return n - ((m*(m-1)) >> 1);
+}
+
+
+// Returns size of alm array, in "units" sizeof(complex<T>).
+__host__ inline
+int alm_complex_nelts(int lmax, int mmax)
 {
     assert(mmax <= lmax);
-    return alm_offset(lmax, mmax+1);  // okay if lmax==mmax
+    return alm_complex_offset(lmax, mmax+1);  // okay if lmax==mmax
 }
 
 
@@ -89,7 +98,7 @@ int alm_nelts(int lmax, int mmax)
 
 
 template<typename T>
-extern gputils::Array<T> reference_sht(
+extern gputils::Array<std::complex<T>> reference_sht(
     const gputils::Array<T> &theta_arr,
     const gputils::Array<T> &phi_arr,
     const gputils::Array<T> &wt_arr,

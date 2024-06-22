@@ -11,7 +11,7 @@ using namespace gputils;
 namespace py = pybind11;
 
 
-static void _launch_direct_sht(Array<double> &out_alm, const Array<double> &in_theta, const Array<double> &in_phi, const Array<double> &wt, int lmax, int mmax)
+static void _launch_direct_sht(Array<complex<double>> &out_alm, const Array<double> &in_theta, const Array<double> &in_phi, const Array<double> &wt, int lmax, int mmax)
 {
     direct_sht::launch_direct_sht(out_alm, in_theta, in_phi, wt, lmax, mmax);
 }

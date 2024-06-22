@@ -17,14 +17,14 @@ using namespace direct_sht;
 template<typename T>
 static void time_sht(long nin, int lmax, int mmax, int niter=1)
 {
-    int nalm = alm_nelts(lmax, mmax);
-    double nflops = 5.0 * double(niter) * double(nin) * double(nalm);  // 5 FMAs per (Re(alm), Im(alm)) pair
+    int nalm = alm_complex_nelts(lmax, mmax);
+    double nflops = 10.0 * double(niter) * double(nin) * double(nalm);  // 5 FMAs per (Re(alm), Im(alm)) pair
     
     cout << "time_sht<" << type_name<T>() << ">: nin=" << nin << ", lmax=" << lmax
 	 << ", mmax=" << mmax << ", niter=" << niter << ", tflops=" << (1.0e-12 * nflops)
 	 << endl;
 
-    Array<T> alm({nalm}, af_gpu | af_zero);
+    Array<complex<T>> alm({nalm}, af_gpu | af_zero);
     Array<T> theta({nin}, af_rhost | af_zero);
     Array<T> phi({nin}, af_gpu | af_zero);
     Array<T> wt({nin}, af_gpu | af_zero);

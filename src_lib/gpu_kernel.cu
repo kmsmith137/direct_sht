@@ -8,6 +8,7 @@
 #include <stdexcept>
 // #include <cassert>
 
+using namespace std;
 using namespace gputils;
 
 namespace direct_sht {
@@ -289,7 +290,7 @@ __device__ void shmem2_to_global(T *out_alm, int lmax, int m)
     int npad = (n0+31) & ~31;   // round up to multiple of 32
 
     // After this shift, 'out_alm' points to an array of length n0.
-    out_alm += alm_offset(lmax, m);
+    out_alm += alm_real_offset(lmax, m);
 
     T *sp = dtype<T>::get_shmem();
     sp += 33*W;  // skip shmem1[W][33]
@@ -564,7 +565,7 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
 
 
 template<typename T>
-void launch_direct_sht(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin)
+void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin)
 {
     // FIXME placeholder values for testing
     constexpr int U = 4;
@@ -599,7 +600,7 @@ void launch_direct_sht(T *out_alm, const T *in_theta, const T *in_phi, const T *
     
     direct_sht_kernel<T,U,R,W,B>
 	<<< mmax+1, 32*W, sb >>>
-	(out_alm, in_theta, in_phi, in_wt, lmax, nouter);
+	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nouter);
 
     CUDA_PEEK("direct_sht_kernel launch");
 }
@@ -617,7 +618,7 @@ static inline void check_array(const Array<T> &arr)
 
 
 template<typename T>
-void launch_direct_sht(Array<T> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
+void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
 {    
     check_array(out_alm);
     check_array(in_theta);
@@ -629,7 +630,7 @@ void launch_direct_sht(Array<T> &out_alm, const Array<T> &in_theta, const Array<
     assert(in_theta.size == in_phi.size);
     assert(in_theta.size == in_wt.size);
 
-    int nalm_expected = alm_nelts(lmax, mmax);
+    int nalm_expected = alm_complex_nelts(lmax, mmax);
     assert(out_alm.size == nalm_expected);
 
     launch_direct_sht<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size);
@@ -637,8 +638,8 @@ void launch_direct_sht(Array<T> &out_alm, const Array<T> &in_theta, const Array<
 
 
 #define INSTANTIATE(T) \
-    template void launch_direct_sht(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin); \
-    template void launch_direct_sht(Array<T> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
+    template void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin); \
+    template void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
 				        
 
 INSTANTIATE(float);
