@@ -151,8 +151,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < 50; i++) {
 	int lmax = rand_int(0, 1001);
 	int mmax = rand_int(0, lmax+1);
-	int nlg = 2048 * rand_int(1,10);
-	int nsm = rand_int(30,100);
+	int nsm = rand_int(30, 100);
+	int nlg = rand_int(nsm, 32768);
 
 	if (i % 2) {
 	    TestInstance<double> ti64(nlg, lmax, mmax);

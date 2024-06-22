@@ -389,7 +389,7 @@ struct advance_sht<T,1,R>
 
 template<typename T, int U, int R, int W, int B>
 __global__ void __launch_bounds__(32*W, B)
-direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int nouter)
+direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, uint nin)
 {
     // Template arguments:
     //   T = float or double.
@@ -400,7 +400,6 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
     //
     // Grid layout: One threadblock per value of m.
     // The kernel processes points in "outer" blocks of length (32*R*W).
-    // The 'nouter' argument is (npoints / (32*R*W)). (FIXME: currently assumed to divide evenly)
     
     constexpr unsigned int ALL_LANES = 0xffffffffU;
     constexpr int K = constexpr_ilog2(W);
@@ -419,7 +418,12 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
     // FIXME use rounded-up lm_max instead of lmax here
     initialize_shmem<T,W> (lmax);
     
-    for (int iouter = 0; iouter < nouter; iouter++) {
+    static constexpr uint BS = 32*R*W;  // outer block size
+    static constexpr uint BS1 = BS-1;
+    uint nin_pad = (nin + BS1) & ~BS1;  // nin, rounded up to multiple of outer block size
+
+    for (uint i_in = threadIdx.x; i_in < nin_pad; i_in += BS) {
+	
 	// In the outer loop, we compute all alms for (32*R*W) points.
 	//
 	// Note: our notation for the Ylm recursion is
@@ -440,11 +444,15 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
 
 	// Initialize per-point data.
 	#pragma unroll
-	for (int r = 0; r < R; r++) {
-	    int s = (iouter*R+r) * blockDim.x + threadIdx.x;
+	for (uint r = 0; r < R; r++) {
+	    uint spad = i_in + (32U*W) * r;
+	    uint s = (spad < nin) ? spad : (nin-1);
+	    
 	    T theta = in_theta[s];
 	    T phi = in_phi[s];
 	    T wt = in_wt[s];
+	    
+	    wt = (spad < nin) ? wt : 0;
 
 	    T stheta;
 	    dtype<T>::xsincos(theta, &stheta, &ctheta[r]);
@@ -572,12 +580,19 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
     constexpr int R = 4;
     constexpr int W = 16;
     constexpr int B = 1;
-    
-    int nouter = nin / (32*R*W);
-    int sb = shmem_nbytes<T,W> (lmax);
-    
+    constexpr int BS = 32*R*W;   // kernel block size
+    constexpr long nin_max = (1L << 32) - BS;
+
+    if (nin <= 0)
+	throw runtime_error("launch_direct_sht(): 'nin' argument must be > 0");
+    if (nin > nin_max)
+	throw runtime_error("launch_direct_sht(): 'nin' argument must be <= " + std::to_string(nin_max));
+
+    // FIXME some day, I'd like to write a unit test that tests nin == nin_max.
+
     // FIXME currently limited to artificially low lmax
-    const int max_shmem_nbytes = 48 * 1024;
+    constexpr int max_shmem_nbytes = 48 * 1024;
+    int sb = shmem_nbytes<T,W> (lmax);    
 
     if (sb > max_shmem_nbytes) {
 	std::stringstream ss;
@@ -590,17 +605,10 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
 
     assert(mmax >= 0);
     assert(lmax >= mmax);
-    assert(nin > 0);
-
-    if (nin != (nouter * 32*R*W)) {
-	std::stringstream ss;
-	ss << "launch_direct_sht(): FIXME: we currently assume that number of points is a multiple of " << (32*R*W);
-	throw std::runtime_error(ss.str());
-    }
     
     direct_sht_kernel<T,U,R,W,B>
 	<<< mmax+1, 32*W, sb >>>
-	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nouter);
+	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nin);
 
     CUDA_PEEK("direct_sht_kernel launch");
 }
