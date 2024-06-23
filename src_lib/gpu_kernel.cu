@@ -573,7 +573,7 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
 
 
 template<typename T>
-void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin)
+void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream)
 {
     // FIXME placeholder values for testing
     constexpr int U = 4;
@@ -607,7 +607,7 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
     assert(lmax >= mmax);
     
     direct_sht_kernel<T,U,R,W,B>
-	<<< mmax+1, 32*W, sb >>>
+	<<< mmax+1, 32*W, sb, stream >>>
 	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nin);
 
     CUDA_PEEK("direct_sht_kernel launch");
@@ -626,7 +626,7 @@ static inline void check_array(const Array<T> &arr)
 
 
 template<typename T>
-void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
+void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
 {    
     check_array(out_alm);
     check_array(in_theta);
@@ -641,15 +641,16 @@ void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, con
     int nalm_expected = alm_complex_nelts(lmax, mmax);
     assert(out_alm.size == nalm_expected);
 
-    launch_direct_sht<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size);
+    launch_direct_sht<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size, stream);
 }
 
 
 #define INSTANTIATE(T) \
-    template void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin); \
-    template void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax)
+    template void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, \
+				    const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream); \
+    template void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, \
+				    const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
 				        
-
 INSTANTIATE(float);
 INSTANTIATE(double);
 

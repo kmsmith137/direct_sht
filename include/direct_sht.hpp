@@ -41,7 +41,8 @@ extern void launch_direct_sht(
     const T *in_wt,
     int lmax,
     int mmax,
-    long nin
+    long nin,
+    cudaStream_t stream = nullptr
 );
 
 
@@ -57,7 +58,8 @@ extern void launch_direct_sht(
     const gputils::Array<T> &in_phi,
     const gputils::Array<T> &in_wt,
     int lmax,
-    int mmax
+    int mmax,
+    cudaStream_t stream = nullptr
 );
 
 

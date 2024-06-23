@@ -11,9 +11,10 @@ using namespace gputils;
 namespace py = pybind11;
 
 
-static void _launch_direct_sht(Array<complex<double>> &out_alm, const Array<double> &in_theta, const Array<double> &in_phi, const Array<double> &wt, int lmax, int mmax)
+static void _launch_direct_sht(Array<complex<double>> &out_alm, const Array<double> &in_theta, const Array<double> &in_phi, const Array<double> &wt, int lmax, int mmax, int stream_ptr)
 {
-    direct_sht::launch_direct_sht(out_alm, in_theta, in_phi, wt, lmax, mmax);
+    cudaStream_t stream = reinterpret_cast<cudaStream_t> (stream_ptr);
+    direct_sht::launch_direct_sht(out_alm, in_theta, in_phi, wt, lmax, mmax, stream);
 }
 
 PYBIND11_MODULE(direct_sht_pybind11, m)  // extension module gets compiled to direct_sht_pybind11.so
@@ -29,7 +30,7 @@ PYBIND11_MODULE(direct_sht_pybind11, m)  // extension module gets compiled to di
 	return;
     }
     
-    m.def("launch_direct_sht", &_launch_direct_sht,
+    m.def("_launch_direct_sht", &_launch_direct_sht,
 	  // "docstring",
-	  py::arg("out_alm"), py::arg("in_theta"), py::arg("in_phi"), py::arg("wt"), py::arg("lmax"), py::arg("mmax"));
+	  py::arg("out_alm"), py::arg("in_theta"), py::arg("in_phi"), py::arg("wt"), py::arg("lmax"), py::arg("mmax"), py::arg("stream_ptr"));
 }

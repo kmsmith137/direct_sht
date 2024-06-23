@@ -1,3 +1,3 @@
-import gputils
+from .direct_sht import direct_sht, alm_getsize
 
-from .direct_sht_pybind11 import *
+from . import time_direct_sht
