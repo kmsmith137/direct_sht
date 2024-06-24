@@ -43,7 +43,7 @@ def points2alm_gpu(theta, phi, wt, lmax, mmax=None, dest=None):
         dest = cp.empty(nalm, dtype=complex)
         
     stream_ptr = cp.cuda.get_current_stream().ptr
-    direct_sht_pybind11._launch_direct_sht(dest, theta, phi, wt, lmax, mmax, stream_ptr)
+    direct_sht_pybind11.launch_points2alm(dest, theta, phi, wt, lmax, mmax, stream_ptr)
     
     return dest
 
@@ -69,7 +69,7 @@ def points2alm_host(theta, phi, wt, lmax, mmax=None, ngpu=None, noisy=False):
         ngpu = min(cp.cuda.runtime.getDeviceCount(), npoints//1024 + 1)
 
     if noisy:
-        print(f'    direct_sht.points2alm_host(): distributing {npoints} points to {ngpu} GPUs')
+        print(f'    direct_sht.points2alm_host(): distributing {npoints} points to {ngpu} GPU(s)')
 
     delim = [ (i*npoints) // ngpu for i in range(ngpu+1) ]
     alm_gpu = [ ]

@@ -39,7 +39,7 @@ static void time_sht(long nin, int lmax, int mmax, int niter=1)
     struct timeval tv0 = get_time();
 
     for (int i = 0; i < niter; i++)
-	launch_direct_sht(alm, theta, phi, wt, lmax, mmax);
+	launch_points2alm(alm, theta, phi, wt, lmax, mmax);
 
     CUDA_CALL(cudaDeviceSynchronize());
     double dt = time_diff(tv0, get_time());
@@ -52,7 +52,12 @@ static void time_sht(long nin, int lmax, int mmax, int niter=1)
 	
 int main(int argc, char **argv)
 {
+    cout << "Note: in double precision, this cuda program (time-sht.cu) is equivalent to 'python -m direct_sht time'\n"
+	 << "However, I'm keeping the C++ program around since it's currently the only way to time the single-precison transforms."
+	 << endl;
+    
     time_sht<float> (3*5 * 128 * 1024, 1000, 1000);
     time_sht<double> (3*5 * 128 * 1024, 1000, 1000);
+    
     return 0;
 }

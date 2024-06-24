@@ -113,11 +113,11 @@ struct TestInstance
 	int nalm = alm_complex_nelts(lmax, mmax);
 	Array<complex<T>> alm_gpu({nalm}, af_gpu | af_random);
 	
-	launch_direct_sht(alm_gpu, theta_big.to_gpu(), phi_big.to_gpu(), wt_big.to_gpu(), lmax, mmax);
+	launch_points2alm(alm_gpu, theta_big.to_gpu(), phi_big.to_gpu(), wt_big.to_gpu(), lmax, mmax);
 	alm_gpu = alm_gpu.to_host();
 
 	// cout << "epsabs=" << epsabs() << endl;
-	Array<complex<T>> alm_cpu = reference_sht(varr(theta_small), varr(phi_small), varr(wt_small), lmax, mmax);
+	Array<complex<T>> alm_cpu = reference_points2alm(varr(theta_small), varr(phi_small), varr(wt_small), lmax, mmax);
 	assert_arrays_equal(alm_gpu, alm_cpu, "gpu", "cpu", {"ix"}, epsabs(), 0);	  // (epsabs, epsrel)
     }
 };
@@ -147,6 +147,10 @@ void show_ix(int lmax, int mmax, int i)
 int main(int argc, char **argv)
 {
     const bool noisy = false;
+    
+    cout << "Note: in double precision, this cuda program (test-sht.cu) is equivalent to 'python -m direct_sht test'\n"
+	 << "However, I'm keeping the C++ program around since it's currently the only way to test the single-precison transforms."
+	 << endl;
 
     for (int i = 0; i < 50; i++) {
 	int lmax = rand_int(0, 1001);

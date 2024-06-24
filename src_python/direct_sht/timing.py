@@ -5,23 +5,23 @@ import numpy as np
 from . import alm_getsize, points2alm_gpu, points2alm_host
 
         
-def time_points2alm(npoints, lmax, mmax=None, ngpu=None):
+def time_points2alm(npoints_per_gpu, lmax, mmax=None, ngpu=None):
     if ngpu is None:
         # First run: one GPU
-        time_points2alm(npoints, lmax, mmax, ngpu=1)
+        time_points2alm(npoints_per_gpu, lmax, mmax, ngpu=1)
 
         # Second run: multiple GPUs
         n = cp.cuda.runtime.getDeviceCount()
         if n > 1:
-            time_points2alm(npoints, lmax, mmax, ngpu=n)
+            time_points2alm(npoints_per_gpu, lmax, mmax, ngpu=n)
         
         return
     
     nalm = alm_getsize(lmax, mmax)
-    tflop_count = 1.0e-11 * ngpu * npoints * nalm  # note ngpu here
+    tflop_count = 1.0e-11 * ngpu * npoints_per_gpu * nalm  # note ngpu here
     
     print(f'time_points2alm: running on {ngpu} GPU(s)')
-    print(f'    time_points2alm: {npoints=} {lmax=} {mmax=} {tflop_count=}')
+    print(f'    time_points2alm: {npoints_per_gpu=} {lmax=} {mmax=} {tflop_count=}')
 
     # Allocate arrays on the GPUs
     alm = [ ]
@@ -32,9 +32,9 @@ def time_points2alm(npoints, lmax, mmax=None, ngpu=None):
     for idev in range(ngpu):
         with cp.cuda.Device(idev):
             alm.append(cp.zeros(nalm, dtype=complex))
-            theta.append(cp.zeros(npoints, dtype=float))
-            phi.append(cp.zeros(npoints, dtype=float))
-            wt.append(cp.zeros(npoints, dtype=float))
+            theta.append(cp.zeros(npoints_per_gpu, dtype=float))
+            phi.append(cp.zeros(npoints_per_gpu, dtype=float))
+            wt.append(cp.zeros(npoints_per_gpu, dtype=float))
     
     t0 = time.time()
 
@@ -55,9 +55,9 @@ def time_points2alm(npoints, lmax, mmax=None, ngpu=None):
 
     # Now run through points2alm_host()
     alm = [ ]
-    theta = np.zeros(ngpu * npoints)
-    phi = np.zeros(ngpu * npoints)
-    wt = np.zeros(ngpu * npoints)
+    theta = np.zeros(ngpu * npoints_per_gpu)
+    phi = np.zeros(ngpu * npoints_per_gpu)
+    wt = np.zeros(ngpu * npoints_per_gpu)
 
     t0 = time.time()
     points2alm_host(theta, phi, wt, lmax, mmax, ngpu, noisy=True)

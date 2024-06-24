@@ -57,7 +57,7 @@ static inline void check_array(const Array<T> &arr)
 
 
 template<typename T>
-Array<complex<T>> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_arr, const Array<T> &wt_arr, int lmax, int mmax)
+Array<complex<T>> reference_points2alm(const Array<T> &theta_arr, const Array<T> &phi_arr, const Array<T> &wt_arr, int lmax, int mmax)
 {
     const T sqrt_one_over_4pi = cpu_dtype<T>::xsqrt(1.0 / (4*M_PI));
     
@@ -141,7 +141,7 @@ Array<complex<T>> reference_sht(const Array<T> &theta_arr, const Array<T> &phi_a
 
 
 #define INSTANTIATE(T) \
-    template Array<complex<T>> reference_sht(const Array<T> &, const Array<T> &, const Array<T> &, int, int)
+    template Array<complex<T>> reference_points2alm(const Array<T> &, const Array<T> &, const Array<T> &, int, int)
 
 INSTANTIATE(float);
 INSTANTIATE(double);

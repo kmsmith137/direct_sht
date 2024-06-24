@@ -341,7 +341,7 @@ struct advance_sht
     // Generic advance_sht -- works for U >= 2
     static_assert((U==2) || (U==4) || (U==8) || (U==16));
 
-    // The meanings of the arguments (lm, ctheta, ..., erec_wide) are explained in the main kernel (direct_sht_kernel() below).
+    // The meanings of the arguments (lm, ctheta, ..., erec_wide) are explained in the main kernel (points2alm_kernel() below).
     // Advances Ylm recursion by U steps (in l), and returns alm with the following register mapping (see top of file for notation):
     // 	 t0 t1 t2 t3 t4 <-> a0 .... aJ st_{J+1} ... st4
     
@@ -389,14 +389,14 @@ struct advance_sht<T,1,R>
 
 template<typename T, int U, int R, int W, int B>
 __global__ void __launch_bounds__(32*W, B)
-direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, uint nin)
+points2alm_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, uint nin)
 {
     // Template arguments:
     //   T = float or double.
     //   U = unrolling factor for l-loop.
     //   R = number of (theta,phi) points held in registers on a single thread.
-    //   W = number of warps per threadblock (currently 16, see launch_direct_sht() below).
-    //   B = number of threadblocks per SM (currently 1, see launch_direct_sht() below).
+    //   W = number of warps per threadblock (currently 16, see launch_points2alm() below).
+    //   B = number of threadblocks per SM (currently 1, see launch_points2alm() below).
     //
     // Grid layout: One threadblock per value of m.
     // The kernel processes points in "outer" blocks of length (32*R*W).
@@ -573,7 +573,7 @@ direct_sht_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
 
 
 template<typename T>
-void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream)
+void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream)
 {
     // FIXME placeholder values for testing
     constexpr int U = 4;
@@ -584,9 +584,9 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
     constexpr long nin_max = (1L << 32) - BS;
 
     if (nin <= 0)
-	throw runtime_error("launch_direct_sht(): 'nin' argument must be > 0");
+	throw runtime_error("launch_points2alm(): 'nin' argument must be > 0");
     if (nin > nin_max)
-	throw runtime_error("launch_direct_sht(): 'nin' argument must be <= " + std::to_string(nin_max));
+	throw runtime_error("launch_points2alm(): 'nin' argument must be <= " + std::to_string(nin_max));
 
     // FIXME some day, I'd like to write a unit test that tests nin == nin_max.
 
@@ -596,7 +596,7 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
 
     if (sb > max_shmem_nbytes) {
 	std::stringstream ss;
-	ss << "launch_direct_sht(): FIXME: called with lmax="
+	ss << "launch_points2alm(): FIXME: called with lmax="
 	   << lmax << ", and we're currently limited to artifically low lmax="
 	   << shmem_lmax<T,W> (max_shmem_nbytes) << " for dtype="
 	   << gputils::type_name<T> ();
@@ -606,11 +606,11 @@ void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
     assert(mmax >= 0);
     assert(lmax >= mmax);
     
-    direct_sht_kernel<T,U,R,W,B>
+    points2alm_kernel<T,U,R,W,B>
 	<<< mmax+1, 32*W, sb, stream >>>
 	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nin);
 
-    CUDA_PEEK("direct_sht_kernel launch");
+    CUDA_PEEK("points2alm_kernel launch");
 }
 
 
@@ -626,7 +626,7 @@ static inline void check_array(const Array<T> &arr)
 
 
 template<typename T>
-void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
+void launch_points2alm(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
 {    
     check_array(out_alm);
     check_array(in_theta);
@@ -641,14 +641,14 @@ void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, con
     int nalm_expected = alm_complex_nelts(lmax, mmax);
     assert(out_alm.size == nalm_expected);
 
-    launch_direct_sht<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size, stream);
+    launch_points2alm<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size, stream);
 }
 
 
 #define INSTANTIATE(T) \
-    template void launch_direct_sht(complex<T> *out_alm, const T *in_theta, const T *in_phi, \
+    template void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, \
 				    const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream); \
-    template void launch_direct_sht(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, \
+    template void launch_points2alm(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, \
 				    const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
 				        
 INSTANTIATE(float);

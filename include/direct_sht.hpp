@@ -12,7 +12,7 @@ namespace direct_sht {
 
 // -------------------------------------------------------------------------------------------------
 //
-// launch_direct_sht() version 1: bare pointer interface.
+// launch_points2alm() version 1: bare pointer interface.
 //
 //  - All pointers should point to GPU memory (not host memory).
 //
@@ -25,8 +25,6 @@ namespace direct_sht {
 //
 //  - in_theta, in_phi, in_wt should be 1-d arrays of length 'nin'.
 //
-// FIXME: for now, 'nin' must be a multiple of 2048. (This would be easy to fix.)
-//
 // FIXME: for now, 'lmax' must be <= 2559 in double precision, 5631 in single precision.
 // (Can easily be increased by a factor ~3, increasing further is doable but nontrivial.)
 //
@@ -34,7 +32,7 @@ namespace direct_sht {
 
 
 template<typename T>
-extern void launch_direct_sht(
+extern void launch_points2alm(
     std::complex<T> *out_alm,
     const T *in_theta,
     const T *in_phi,
@@ -48,11 +46,11 @@ extern void launch_direct_sht(
 
 // -------------------------------------------------------------------------------------------------
 //
-// launch_direct_sht() version 2: interface using gputils::Array instead of bare pointers.
+// launch_points2alm() version 2: interface using gputils::Array instead of bare pointers.
 
 
 template<typename T>
-extern void launch_direct_sht(
+extern void launch_points2alm(
     gputils::Array<std::complex<T>> &out_alm,
     const gputils::Array<T> &in_theta,
     const gputils::Array<T> &in_phi,
@@ -100,7 +98,7 @@ int alm_complex_nelts(int lmax, int mmax)
 
 
 template<typename T>
-extern gputils::Array<std::complex<T>> reference_sht(
+extern gputils::Array<std::complex<T>> reference_points2alm(
     const gputils::Array<T> &theta_arr,
     const gputils::Array<T> &phi_arr,
     const gputils::Array<T> &wt_arr,
