@@ -20,9 +20,9 @@ pyext_source_files = [
 python_files_toplevel = [
     'src_python/direct_sht/__init__.py',
     'src_python/direct_sht/__main__.py',
-    'src_python/direct_sht/direct_sht.py',
+    'src_python/direct_sht/direct_sht_core.py',
     'src_python/direct_sht/tests.py',
-    'src_python/direct_sht/time_direct_sht.py'
+    'src_python/direct_sht/timing.py'
 ]    
 
 local_executables = [

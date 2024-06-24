@@ -2,7 +2,6 @@ import time
 import cupy as cp
 import numpy as np
 
-# from .direct_sht import alm_getsize, points2alm_host
 from . import alm_getsize, points2alm_gpu, points2alm_host
 
 
