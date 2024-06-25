@@ -112,7 +112,7 @@ template<> struct dtype<double>
 template<typename T>
 __device__ T init_Am(int m)
 {
-    constexpr unsigned int ALL_LANES = 0xffffffffU;
+    constexpr uint ALL_LANES = 0xffffffffU;
     constexpr T one_over_4pi = 0.079577471545947667884;
     
     // We speed up the computation a bit by parallelizing over threads in the warp.
@@ -316,7 +316,7 @@ __device__ void shmem2_to_global(T *out_alm, int lmax, int m)
 template<typename T>
 __device__ T warp_reduce(T x0, T x1, int bit)
 {
-    constexpr unsigned int ALL_LANES = 0xffffffffU;
+    constexpr uint ALL_LANES = 0xffffffffU;
     
     // Input:
     //   r <-> i
@@ -360,7 +360,7 @@ struct advance_sht<T,1,R>
 {
     static __device__ __forceinline__ T advance(int lm, T ctheta[R], T cmphi[R], T smphi[R], T wylm[R], T weylm1[R], int wynorm[R], T ewide, T erec_wide)
     {
-	constexpr unsigned int ALL_LANES = 0xffffffffU;
+	constexpr uint ALL_LANES = 0xffffffffU;
 	
 	T alm_re = 0;
 	T alm_im = 0;
@@ -401,7 +401,7 @@ points2alm_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
     // Grid layout: One threadblock per value of m.
     // The kernel processes points in "outer" blocks of length (32*R*W).
     
-    constexpr unsigned int ALL_LANES = 0xffffffffU;
+    constexpr uint ALL_LANES = 0xffffffffU;
     constexpr int K = constexpr_ilog2(W);
     static_assert(constexpr_is_pow2(W));
     

@@ -95,7 +95,7 @@ struct TestInstance
     double epsabs() const
     {
 	double wt2 = 0.0;
-	for (size_t i = 0; i < wt_small.size(); i++)
+	for (ulong i = 0; i < wt_small.size(); i++)
 	    wt2 += wt_small[i] * wt_small[i];
 
 	return Eps<T>::eps * (sqrt(wt2 * (lmax+1)) + 0.1);
