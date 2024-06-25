@@ -5,7 +5,7 @@ requires = [ 'meson-python' ]  # omitted most dependencies since I plan to use '
 [project]
 name = 'direct_sht'
 version = '0.0.1'
-dependencies = [ 'pybind11' ]  # omitted most dependencies since I plan to use 'pip install --no-build-isolation'
+dependencies = [ 'meson-python', 'pybind11', 'healpy', 'cupy', 'numpy' ]
 description = 'Direct SHT'
 # readme = 'README.md'
 # requires-python = '>=3.8'
