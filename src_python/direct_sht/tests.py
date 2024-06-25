@@ -88,6 +88,6 @@ def multi_compare_to_reference():
         mmax = np.random.randint(0, lmax+1) if (np.random.uniform() < 0.9) else None
         nsm = np.random.randint(30, 100)
         nlg = np.random.randint(nsm, 16*1024)
-        ngpu = np.random.randint(1, ndev)
+        ngpu = np.random.randint(1, ndev+1)
         
         compare_to_reference(nlg, nsm, lmax, mmax, ngpu)
