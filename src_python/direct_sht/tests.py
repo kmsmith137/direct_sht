@@ -1,3 +1,5 @@
+"""To run all unit tests, do 'python -m direct_sht test'."""
+
 import time
 import cupy as cp
 import numpy as np

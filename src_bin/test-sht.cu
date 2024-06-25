@@ -3,7 +3,6 @@
 #include <gputils/test_utils.hpp>    // assert_arrays_equal()
 #include <gputils/string_utils.hpp>  // type_name<T>()
 
-#include <cassert>
 #include <iostream>
 
 using namespace std;
@@ -22,7 +21,7 @@ template<> struct Eps<double> { static constexpr double eps = 1.0e-13; };
 template<typename T>
 Array<T> rand_array(long nelts, T lo, T hi)
 {
-    assert(nelts > 0);
+    xassert(nelts > 0);
     Array<T> ret({nelts}, af_uhost);
     
     for (long i = 0; i < nelts; i++)
@@ -36,7 +35,7 @@ template<typename T>
 Array<T> varr(const vector<T> &v)
 {
     long n = v.size();
-    assert(n > 0);
+    xassert(n > 0);
     
     Array<T> ret({n}, af_uhost);
     memcpy(ret.data, &v[0], n * sizeof(T));
@@ -69,7 +68,7 @@ struct TestInstance
 
     void add_point(int ix, T wt, bool noisy=false)
     {
-	assert((ix >= 0) && (ix < nin));
+	xassert((ix >= 0) && (ix < nin));
 
 	T theta = theta_big.data[ix];
 	T phi = phi_big.data[ix];

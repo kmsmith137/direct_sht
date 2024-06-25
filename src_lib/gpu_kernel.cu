@@ -2,11 +2,11 @@
 
 #include <gputils/cuda_utils.hpp>
 #include <gputils/string_utils.hpp>  // gputils::type_name<T> ()
+#include <gputils/xassert.hpp>
 
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
-// #include <cassert>
 
 using namespace std;
 using namespace gputils;
@@ -405,7 +405,7 @@ points2alm_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
     constexpr int K = constexpr_ilog2(W);
     static_assert(constexpr_is_pow2(W));
     
-#if 1
+#if 0
     assert(blockDim.x == 32*W);
     assert(blockDim.y == 1);
     assert(blockDim.z == 1);
@@ -573,7 +573,7 @@ points2alm_kernel(T *out_alm, const T *in_theta, const T *in_phi, const T *in_wt
 
 
 template<typename T>
-void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long nin, cudaStream_t stream)
+void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, const T *in_wt, int lmax, int mmax, long npoints, cudaStream_t stream)
 {
     // FIXME placeholder values for testing
     constexpr int U = 4;
@@ -581,12 +581,17 @@ void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
     constexpr int W = 16;
     constexpr int B = 1;
     constexpr int BS = 32*R*W;   // kernel block size
-    constexpr long nin_max = (1L << 32) - BS;
+    constexpr long npoints_max = (1L << 32) - BS;
 
-    if (nin <= 0)
-	throw runtime_error("launch_points2alm(): 'nin' argument must be > 0");
-    if (nin > nin_max)
-	throw runtime_error("launch_points2alm(): 'nin' argument must be <= " + std::to_string(nin_max));
+    if (npoints <= 0)
+	throw runtime_error("launch_points2alm(): 'npoints' argument must be > 0");
+    if (npoints > npoints_max)
+	throw runtime_error("launch_points2alm(): 'npoints' argument must be <= " + std::to_string(npoints_max));
+    
+    xassert_msg(mmax >= 0, "direct_sht.gpu_points2alm() was called with mmax < 0");
+    xassert_msg(lmax >= mmax, "direct_sht.gpu_points2alm() was called with lmax < mmax");
+    xassert_msg(npoints > 0, "direct_sht.gpu_points2alm() was called with npoints <= 0");
+    xassert_msg(npoints <= npoints_max, "direct_sht.gpu_points2alm(): 'npoints' argument must be <= " + std::to_string(npoints_max));
 
     // FIXME some day, I'd like to write a unit test that tests nin == nin_max.
 
@@ -602,45 +607,30 @@ void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
 	   << gputils::type_name<T> ();
 	throw std::runtime_error(ss.str());
     }
-
-    assert(mmax >= 0);
-    assert(lmax >= mmax);
     
     points2alm_kernel<T,U,R,W,B>
 	<<< mmax+1, 32*W, sb, stream >>>
-	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, nin);
+	(reinterpret_cast<T *> (out_alm), in_theta, in_phi, in_wt, lmax, npoints);
 
     CUDA_PEEK("points2alm_kernel launch");
 }
 
 
 template<typename T>
-static inline void check_array(const Array<T> &arr)
-{
-    // FIXME make verbose, combine with similar function in reference_sht.cu
-    assert(arr.on_gpu());
-    assert(arr.ndim == 1);
-    assert(arr.is_fully_contiguous());
-    assert(arr.size > 0);
-}
-
-
-template<typename T>
 void launch_points2alm(Array<complex<T>> &out_alm, const Array<T> &in_theta, const Array<T> &in_phi, const Array<T> &in_wt, int lmax, int mmax, cudaStream_t stream)
-{    
-    check_array(out_alm);
-    check_array(in_theta);
-    check_array(in_phi);
-    check_array(in_wt);
+{
+    check_array_arg(out_alm, "direct_sht.gpu_points2alm()", "alm", true);     // on_gpu=true
+    check_array_arg(in_theta, "direct_sht.gpu_points2alm()", "theta", true);  // on_gpu=true
+    check_array_arg(in_phi, "direct_sht.gpu_points2alm()", "phi", true);      // on_gpu=true
+    check_array_arg(in_wt, "direct_sht.gpu_points2alm()", "wt", true);        // on_gpu=true
 
-    assert(mmax >= 0);
-    assert(lmax >= mmax);
-    assert(in_theta.size == in_phi.size);
-    assert(in_theta.size == in_wt.size);
+    xassert_msg(in_theta.size == in_phi.size, "direct_sht.gpu_points2alm() was called with theta,phi arrays of different sizes");
+    xassert_msg(in_theta.size == in_wt.size, "direct_sht.gpu_points2alm() was called with theta,wt arrays of different sizes");
 
     int nalm_expected = alm_complex_nelts(lmax, mmax);
-    assert(out_alm.size == nalm_expected);
+    xassert_msg(in_theta.size == in_wt.size, "direct_sht.gpu_points2alm() was called with wrong-size alm output array");
 
+    // Checks lmax, mmax.
     launch_points2alm<T> (out_alm.data, in_theta.data, in_phi.data, in_wt.data, lmax, mmax, in_theta.size, stream);
 }
 

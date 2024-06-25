@@ -20,6 +20,11 @@ def _check_host_array(arr, arr_name):
     
     
 def alm_getsize(lmax, mmax=None):
+    """
+    Returns the size of the alm array, for specified lmax and mmax.
+    (Equivalent to healpy.Alm.getsize().)
+    """
+    
     if mmax is None:
         mmax = lmax
 
@@ -29,11 +34,15 @@ def alm_getsize(lmax, mmax=None):
 
 def points2alm_gpu(theta, phi, wt, lmax, mmax=None, dest=None):
     """
-    Launches a direct SHT on the current cupy device/stream.
+    Low-level function which aynchronously launches a direct SHT on one GPU.
+    You probably want the higher-level function points2alm_host() instead!
+
+    The kernel will be launched on the current cupy device/stream.
+    All input/output arrays must be in GPU memory.
 
     The length of the output array (1-dimensional, dtype complex) is given by alm_getsize(lmax, mmax). 
-    The 'dest' argument can be used to pass a caller-allocated output array. 
-    If dest is None, then a new output array will be allocated (with cupy.empty()).
+    The 'dest' argument can be used to pass a caller-allocated output array. If dest is None, then 
+    a new output array will be allocated (with cupy.empty()).
     """
     
     if mmax is None:
@@ -50,8 +59,9 @@ def points2alm_gpu(theta, phi, wt, lmax, mmax=None, dest=None):
 
 def points2alm_host(theta, phi, wt, lmax, mmax=None, ngpu=None, noisy=False):
     """
-    Simple wrapper -- not always the most efficient.
-    Uses current cupy stream on each GPU.
+    High-level function which distributes a direct SHT over all GPUs in a node.
+    The input arrays (theta, phi, wt) should be in host memory (not GPU memory).
+    Returns a complex-valued alm array (also in host memory).
     """
 
     _check_host_array(theta, 'theta')

@@ -46,29 +46,18 @@ inline T epsilon(int l, int m)
 
 
 template<typename T>
-static inline void check_array(const Array<T> &arr)
-{
-    // FIXME make verbose, combine with similar function in gpu_kernel.cu
-    assert(arr.on_host());
-    assert(arr.ndim == 1);
-    assert(arr.is_fully_contiguous());
-    assert(arr.size > 0);
-}
-
-
-template<typename T>
 Array<complex<T>> reference_points2alm(const Array<T> &theta_arr, const Array<T> &phi_arr, const Array<T> &wt_arr, int lmax, int mmax)
 {
     const T sqrt_one_over_4pi = cpu_dtype<T>::xsqrt(1.0 / (4*M_PI));
     
-    check_array(theta_arr);
-    check_array(phi_arr);
-    check_array(wt_arr);
-
-    assert(mmax >= 0);
-    assert(lmax >= mmax);
-    assert(phi_arr.size == theta_arr.size);
-    assert(wt_arr.size == theta_arr.size);
+    check_array_arg(theta_arr, "direct_sht.reference_points2alm()", "theta", false);  // on_gpu=false
+    check_array_arg(phi_arr, "direct_sht.reference_points2alm()", "phi", false);      // on_gpu=false
+    check_array_arg(wt_arr, "direct_sht.reference_points2alm()", "wt", false);        // on_gpu=false
+    
+    xassert_msg(mmax >= 0, "direct_sht.reference_points2alm() was called with mmax < 0");
+    xassert_msg(lmax >= mmax, "direct_sht.reference_points2alm() was called with lmax < mmax");
+    xassert_msg(theta_arr.size == phi_arr.size, "direct_sht.reference_points2alm() was called with theta,phi arrays of different sizes");
+    xassert_msg(theta_arr.size == wt_arr.size, "direct_sht.reference_points2alm() was called with theta,wt arrays of different sizes");
 
     int nin = theta_arr.size;
     int nalm = alm_complex_nelts(lmax, mmax);
@@ -91,7 +80,7 @@ Array<complex<T>> reference_points2alm(const Array<T> &theta_arr, const Array<T>
 	cpu_dtype<T>::xsincos(theta, &sin_theta, &cos_theta);
 	
 	// FIXME assumed below when taking log(sin(theta))
-	assert(sin_theta > 0.0);
+	xassert(sin_theta > 0.0);
 	
 	for (int m = 0; m <= mmax; m++) {
 	    complex<T> *out_mslice = out_p + alm_complex_offset(lmax,m);
@@ -122,7 +111,7 @@ Array<complex<T>> reference_points2alm(const Array<T> &theta_arr, const Array<T>
 		T alpha_next = (cos_theta*alpha - el*beta) / el_next;
 
 		T t = alpha_next*alpha_next + alpha*alpha;
-		assert(t > 0.0);
+		xassert(t > 0.0);
 
 		T u = cpu_dtype<T>::xsqrt(t);
 		beta = alpha / u;

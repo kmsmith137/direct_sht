@@ -1,3 +1,5 @@
+"""To time the direct SHT, do 'python -m direct_sht time'."""
+
 import time
 import cupy as cp
 import numpy as np

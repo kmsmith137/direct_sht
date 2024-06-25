@@ -1,6 +1,5 @@
 #include "../include/direct_sht.hpp"
 
-#include <cassert>
 #include <iostream>
 #include <gputils/cuda_utils.hpp>
 #include <gputils/time_utils.hpp>

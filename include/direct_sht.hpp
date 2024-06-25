@@ -2,7 +2,7 @@
 #define _DIRECT_SHT_HPP
 
 #include <gputils/Array.hpp>
-#include <cassert>
+#include <gputils/xassert.hpp>
 
 namespace direct_sht {
 #if 0
@@ -23,7 +23,7 @@ namespace direct_sht {
 //               ...
 //      a_{mmax,mmax} ... a_{lmax,mmax}
 //
-//  - in_theta, in_phi, in_wt should be 1-d arrays of length 'nin'.
+//  - in_theta, in_phi, in_wt should be 1-d arrays of length 'npoints'.
 //
 // FIXME: for now, 'lmax' must be <= 2559 in double precision, 5631 in single precision.
 // (Can easily be increased by a factor ~3, increasing further is doable but nontrivial.)
@@ -39,7 +39,7 @@ extern void launch_points2alm(
     const T *in_wt,
     int lmax,
     int mmax,
-    long nin,
+    long npoints,
     cudaStream_t stream = nullptr
 );
 
@@ -87,7 +87,7 @@ int alm_complex_offset(int lmax, int m)
 __host__ inline
 int alm_complex_nelts(int lmax, int mmax)
 {
-    assert(mmax <= lmax);
+    xassert(mmax <= lmax);
     return alm_complex_offset(lmax, mmax+1);  // okay if lmax==mmax
 }
 
@@ -105,6 +105,31 @@ extern gputils::Array<std::complex<T>> reference_points2alm(
     int lmax,
     int mmax
 );
+
+
+// -------------------------------------------------------------------------------------------------
+//
+// Used internally
+
+
+template<typename T>
+static inline void check_array_arg(const gputils::Array<T> &arr, const char *func_name, const char *arg_name, bool on_gpu)
+{
+    if (arr.ndim != 1)
+	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to be 1-dimensional");
+
+    if (!arr.is_fully_contiguous())
+	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to be a contiguous array");
+    
+    if (arr.size <= 0)
+	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to have size > 0");
+
+    if (on_gpu && !arr.on_gpu())
+	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to be on the GPU");
+    
+    if (!on_gpu && !arr.on_host())
+	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to be on the CPU (not GPU)");
+}
 
 
 }  // namespace direct_sht

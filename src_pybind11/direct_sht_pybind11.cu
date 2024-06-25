@@ -31,10 +31,10 @@ PYBIND11_MODULE(direct_sht_pybind11, m)  // extension module gets compiled to di
     }
     
     m.def("launch_points2alm", &_launch_points2alm,
-	  // "docstring",
+	  "All arrays must be on the GPU.",
 	  py::arg("out_alm"), py::arg("theta"), py::arg("phi"), py::arg("wt"), py::arg("lmax"), py::arg("mmax"), py::arg("stream_ptr"));
 
     m.def("reference_points2alm", &direct_sht::reference_points2alm<double>,
-	  // "docstring",
+	  "Slow, reference implementation of points2alm. All arrays must be on the CPU. Returns a complex alm array.",
 	  py::arg("theta"), py::arg("phi"), py::arg("wt"), py::arg("lmax"), py::arg("mmax"));
 }
