@@ -8,8 +8,8 @@
 
 import io
 import os
-import importlib
 import sysconfig
+import importlib.util
 
 try:
     import pybind11
