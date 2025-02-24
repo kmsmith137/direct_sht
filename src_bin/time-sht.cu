@@ -1,12 +1,12 @@
 #include "../include/direct_sht.hpp"
 
 #include <iostream>
-#include <gputils/cuda_utils.hpp>
-#include <gputils/time_utils.hpp>
-#include <gputils/string_utils.hpp>
+#include <ksgpu/cuda_utils.hpp>
+#include <ksgpu/time_utils.hpp>
+#include <ksgpu/string_utils.hpp>
 
 using namespace std;
-using namespace gputils;
+using namespace ksgpu;
 using namespace direct_sht;
 
 

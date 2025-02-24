@@ -115,7 +115,7 @@ ALL_SRCFILES := $(LIB_SRCFILES) $(PYEXT_SRCFILES) $(BIN_SRCFILES)
 DEPFILES := $(ALL_SRCFILES:%.cu=%.d)
 
 SDIST_FILES := pyproject.toml Makefile makefile_helper.py
-SDIST_FILES += $(ALL_SRCFILES) $(HFILES)
+SDIST_FILES += $(PYFILES) $(ALL_SRCFILES) $(HFILES)
 
 # Some symlinks for the wheel:
 #  - header file include/%.hpp gets symlinked to direct_sht/include/%.hpp

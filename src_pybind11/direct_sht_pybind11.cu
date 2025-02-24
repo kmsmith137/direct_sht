@@ -1,13 +1,13 @@
-// For an explanation of PY_ARRAY_UNIQUE_SYMBOL, see comments in gputils/src_pybind11/gputils_pybind11.cu.
+// For an explanation of PY_ARRAY_UNIQUE_SYMBOL, see comments in ksgpu/src_pybind11/ksgpu_pybind11.cu.
 #define PY_ARRAY_UNIQUE_SYMBOL PyArray_API_direct_sht
 
 #include <iostream>
-#include <gputils/pybind11.hpp>
+#include <ksgpu/pybind11.hpp>
 #include "../include/direct_sht.hpp"
 
 
 using namespace std;
-using namespace gputils;
+using namespace ksgpu;
 namespace py = pybind11;
 
 

@@ -1,8 +1,8 @@
 #ifndef _DIRECT_SHT_HPP
 #define _DIRECT_SHT_HPP
 
-#include <gputils/Array.hpp>
-#include <gputils/xassert.hpp>
+#include <ksgpu/Array.hpp>
+#include <ksgpu/xassert.hpp>
 
 namespace direct_sht {
 #if 0
@@ -46,15 +46,15 @@ extern void launch_points2alm(
 
 // -------------------------------------------------------------------------------------------------
 //
-// launch_points2alm() version 2: interface using gputils::Array instead of bare pointers.
+// launch_points2alm() version 2: interface using ksgpu::Array instead of bare pointers.
 
 
 template<typename T>
 extern void launch_points2alm(
-    gputils::Array<std::complex<T>> &out_alm,
-    const gputils::Array<T> &in_theta,
-    const gputils::Array<T> &in_phi,
-    const gputils::Array<T> &in_wt,
+    ksgpu::Array<std::complex<T>> &out_alm,
+    const ksgpu::Array<T> &in_theta,
+    const ksgpu::Array<T> &in_phi,
+    const ksgpu::Array<T> &in_wt,
     int lmax,
     int mmax,
     cudaStream_t stream = nullptr
@@ -98,10 +98,10 @@ int alm_complex_nelts(int lmax, int mmax)
 
 
 template<typename T>
-extern gputils::Array<std::complex<T>> reference_points2alm(
-    const gputils::Array<T> &theta_arr,
-    const gputils::Array<T> &phi_arr,
-    const gputils::Array<T> &wt_arr,
+extern ksgpu::Array<std::complex<T>> reference_points2alm(
+    const ksgpu::Array<T> &theta_arr,
+    const ksgpu::Array<T> &phi_arr,
+    const ksgpu::Array<T> &wt_arr,
     int lmax,
     int mmax
 );
@@ -113,7 +113,7 @@ extern gputils::Array<std::complex<T>> reference_points2alm(
 
 
 template<typename T>
-static inline void check_array_arg(const gputils::Array<T> &arr, const char *func_name, const char *arg_name, bool on_gpu)
+static inline void check_array_arg(const ksgpu::Array<T> &arr, const char *func_name, const char *arg_name, bool on_gpu)
 {
     if (arr.ndim != 1)
 	throw std::runtime_error(std::string(func_name) + ": expected '" + std::string(arg_name) + "' arg to be 1-dimensional");

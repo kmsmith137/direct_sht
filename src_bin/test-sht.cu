@@ -1,16 +1,16 @@
 #include "../include/direct_sht.hpp"
-#include <gputils/rand_utils.hpp>    // rand_uniform()
-#include <gputils/test_utils.hpp>    // assert_arrays_equal()
-#include <gputils/string_utils.hpp>  // type_name<T>()
+#include <ksgpu/rand_utils.hpp>    // rand_uniform()
+#include <ksgpu/test_utils.hpp>    // assert_arrays_equal()
+#include <ksgpu/string_utils.hpp>  // type_name<T>()
 
 #include <iostream>
 
 using namespace std;
-using namespace gputils;
+using namespace ksgpu;
 using namespace direct_sht;
 
 
-// FIXME move to gputils (with a better name)
+// FIXME move to ksgpu (with a better name)
 template<typename T> struct Eps { };
 template<> struct Eps<float> { static constexpr float eps = 1.0e-3; };
 template<> struct Eps<double> { static constexpr double eps = 1.0e-13; };
@@ -25,7 +25,7 @@ Array<T> rand_array(long nelts, T lo, T hi)
     Array<T> ret({nelts}, af_uhost);
     
     for (long i = 0; i < nelts; i++)
-	ret.data[i] = gputils::rand_uniform(lo, hi);
+	ret.data[i] = ksgpu::rand_uniform(lo, hi);
 
     return ret;
 }

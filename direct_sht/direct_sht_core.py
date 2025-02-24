@@ -1,4 +1,4 @@
-import gputils
+import ksgpu
 import cupy as cp
 import numpy as np
 

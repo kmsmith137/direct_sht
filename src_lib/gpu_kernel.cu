@@ -1,15 +1,15 @@
 #include "../include/direct_sht.hpp"
 
-#include <gputils/cuda_utils.hpp>
-#include <gputils/string_utils.hpp>  // gputils::type_name<T> ()
-#include <gputils/xassert.hpp>
+#include <ksgpu/cuda_utils.hpp>
+#include <ksgpu/string_utils.hpp>  // ksgpu::type_name<T> ()
+#include <ksgpu/xassert.hpp>
 
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
 
 using namespace std;
-using namespace gputils;
+using namespace ksgpu;
 
 namespace direct_sht {
 #if 0
@@ -604,7 +604,7 @@ void launch_points2alm(complex<T> *out_alm, const T *in_theta, const T *in_phi, 
 	ss << "launch_points2alm(): FIXME: called with lmax="
 	   << lmax << ", and we're currently limited to artifically low lmax="
 	   << shmem_lmax<T,W> (max_shmem_nbytes) << " for dtype="
-	   << gputils::type_name<T> ();
+	   << ksgpu::type_name<T> ();
 	throw std::runtime_error(ss.str());
     }
     

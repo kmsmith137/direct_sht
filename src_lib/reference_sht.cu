@@ -4,7 +4,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace gputils;
+using namespace ksgpu;
 
 namespace direct_sht {
 #if 0

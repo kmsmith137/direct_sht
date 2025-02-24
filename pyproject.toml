@@ -1,18 +1,17 @@
-[build-system]
-build-backend = 'mesonpy'
-requires = [ 'meson-python' ]  # omitted most dependencies since I plan to use 'pip install --no-build-isolation'
-
 [project]
 name = 'direct_sht'
-version = '0.0.1'
-dependencies = [ 'meson-python', 'pybind11', 'healpy', 'cupy', 'numpy' ]
+version = '0.0.3'
+dependencies = [ 'pybind11', 'healpy', 'numpy', 'ksgpu >= 1.0.3' ]
 description = 'Direct SHT'
+requires-python = '>=3.8'
 # readme = 'README.md'
-# requires-python = '>=3.8'
 # license = {file = 'LICENSE.txt'}
 # authors = [ {name = 'Kendrick Smith', email = 'kmsmith@perimeterinstitute.ca'} ]
 
-# https://meson-python.readthedocs.io/en/latest/how-to-guides/meson-args.html
-[tool.meson-python.args]
-setup = ['-Db_ndebug=false']  # don't compile with -DNDEBUG (which disables asserts)
-compile = ['--verbose']       # only takes effect if 'pip install' is invoked with '-v' flag
+[build-system]
+build-backend = 'pipmake'
+requires = [ 'pipmake >= 0.0.2', 'pybind11', 'numpy', 'ksgpu >= 1.0.3' ]
+
+# NOTE: I decided not to specify 'cupy' as a dependency, in order to avoid triggering
+# a pip install of cupy (since cupy is difficult to install with pip but straightforward
+# with other tools, e.g. conda).

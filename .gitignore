@@ -1,5 +1,12 @@
 *~
 *.o
+*.d
+*.so
 bin/
-lib/libdirect_sht.a
-lib/libdirect_sht.so
+direct_sht/lib
+direct_sht/include
+direct_sht/__pycache__/
+makefile_helper.out
+sdist_files.txt
+wheel_files.txt
+
