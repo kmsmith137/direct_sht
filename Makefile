@@ -93,7 +93,7 @@ HFILES = \
   include/direct_sht.hpp
 
 # 'make clean' deletes {*~, *.o, *.d, *.so, *.pyc} from these dirs.
-CLEAN_DIRS := . lib src_bin src_lib direct_sht/__pycache__ include
+CLEAN_DIRS := . lib src_bin src_lib src_pybind11 direct_sht direct_sht/__pycache__ include
 
 # Extra files to be deleted by 'make clean'.
 # Note that 'direct_sht/include' and 'direct_sht/lib' are symlinks, so we put them in CLEAN_FILES, not CLEAN_RMDIRS
@@ -132,9 +132,9 @@ build_sdist: sdist_files.txt
 
 # Symlink {include,lib} into python directory 'direct_sht'.
 direct_sht/include:
-	ln -s ../include $@
+	ln -sf ../include $@
 direct_sht/lib:
-	ln -s ../lib $@
+	ln -sf ../lib $@
 
 # Build object files in src_lib/, src_bin/, and src_lib/template_instantiations/ with default flags.
 %.o: %.cu %.d
