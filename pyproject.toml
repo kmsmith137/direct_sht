@@ -1,7 +1,7 @@
 [project]
 name = 'direct_sht'
-version = '0.0.3'
-dependencies = [ 'pybind11', 'healpy', 'numpy', 'ksgpu >= 1.0.3' ]
+version = '0.0.4'
+dependencies = [ 'pybind11', 'healpy', 'numpy', 'ksgpu >= 1.2.0' ]
 description = 'Direct SHT'
 requires-python = '>=3.8'
 # readme = 'README.md'
@@ -10,7 +10,7 @@ requires-python = '>=3.8'
 
 [build-system]
 build-backend = 'pipmake'
-requires = [ 'pipmake >= 0.0.2', 'pybind11', 'numpy', 'ksgpu >= 1.0.3' ]
+requires = [ 'pipmake >= 0.0.3', 'pybind11', 'numpy', 'ksgpu >= 1.2.0' ]
 
 # NOTE: I decided not to specify 'cupy' as a dependency, in order to avoid triggering
 # a pip install of cupy (since cupy is difficult to install with pip but straightforward
